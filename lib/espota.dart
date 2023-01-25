@@ -48,13 +48,15 @@ Future<Stream<double>> upgrade(
   }
 
   Future<void> fail(Object error) async {
-    controller.addError(error);
+    if (!controller.isClosed) {
+      controller.addError(error);
+    }
     await close();
   }
 
   timer = Timer(timeout, () => fail(TimeoutException(null)));
 
-  serverSocket.first.then(
+  serverSocket.first.then<FutureOr<void>>(
     (s) {
       tcpSocket = s;
       var written = 0;
