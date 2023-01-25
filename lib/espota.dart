@@ -59,7 +59,7 @@ Future<Stream<double>> upgrade(
   serverSocket.first.then<FutureOr<void>>(
     (s) {
       tcpSocket = s;
-      var written = 0;
+      var totalWritten = 0;
       s.listen(
         (event) async {
           final msg = utf8.decode(event);
@@ -67,8 +67,12 @@ Future<Stream<double>> upgrade(
             await close();
             return;
           }
-          written += int.parse(msg);
-          controller.add(written / fwLength);
+          final written = int.parse(msg);
+          if (written < 100000) {
+            // Try to prevent sticky packet.
+            totalWritten += written;
+          }
+          controller.add(totalWritten / fwLength);
         },
         onError: fail,
       );
